@@ -649,11 +649,13 @@ void LocalPlannerNode::pointCloudTransformThread(int index) {
 
     if (should_exit_) break;
 
+    ROS_WARN("\033[1;33m TF loop... \n \033[0m");
     std::lock_guard<std::mutex> cloud_msg_lock(
         *(cameras_[index].cloud_msg_mutex_));
     if (tf_listener_->canTransform(
             "/local_origin", cameras_[index].newest_cloud_msg_.header.frame_id,
             cameras_[index].newest_cloud_msg_.header.stamp)) {
+      ROS_WARN("\033[1;33m Can transform is ok \n \033[0m");
       try {
         pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
         // transform message to pcl type
@@ -667,11 +669,13 @@ void LocalPlannerNode::pointCloudTransformThread(int index) {
         // transform cloud to /local_origin frame
         pcl_ros::transformPointCloud("/local_origin", pcl_cloud, pcl_cloud,
                                      *tf_listener_);
+        ROS_WARN("\033[1;33m PC is transformed \n \033[0m");
 
         std::lock_guard<std::mutex> transformed_cloud_guard(
             *(cameras_[index].transformed_cloud_mutex_));
         cameras_[index].transformed_ = true;
         cameras_[index].pcl_cloud = std::move(pcl_cloud);
+        ROS_WARN("\033[1;33m DONE! \n \033[0m");
       } catch (tf::TransformException& ex) {
         ROS_ERROR("Received an exception trying to transform a pointcloud: %s",
                   ex.what());
